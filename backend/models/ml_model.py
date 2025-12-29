@@ -75,6 +75,38 @@ class StockMLModel:
         atr = pd.Series(true_range).rolling(period).mean()
         return atr
     
+    def calculate_stochastic(self, high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> tuple:
+        """حساب Stochastic Oscillator"""
+        lowest_low = low.rolling(window=period).min()
+        highest_high = high.rolling(window=period).max()
+        k = 100 * (close - lowest_low) / (highest_high - lowest_low)
+        d = k.rolling(window=3).mean()
+        return k, d
+    
+    def calculate_adx(self, high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> pd.Series:
+        """حساب ADX (Average Directional Index)"""
+        plus_dm = high.diff()
+        minus_dm = low.diff()
+        plus_dm[plus_dm < 0] = 0
+        minus_dm[minus_dm > 0] = 0
+        
+        tr = pd.concat([high - low, 
+                       np.abs(high - close.shift()), 
+                       np.abs(low - close.shift())], axis=1).max(axis=1)
+        
+        atr = tr.rolling(window=period).mean()
+        plus_di = 100 * (plus_dm.rolling(window=period).mean() / atr)
+        minus_di = 100 * (np.abs(minus_dm).rolling(window=period).mean() / atr)
+        
+        dx = 100 * np.abs(plus_di - minus_di) / (plus_di + minus_di)
+        adx = dx.rolling(window=period).mean()
+        return adx
+    
+    def calculate_obv(self, close: pd.Series, volume: pd.Series) -> pd.Series:
+        """حساب OBV (On-Balance Volume)"""
+        obv = (np.sign(close.diff()) * volume).fillna(0).cumsum()
+        return obv
+    
     def calculate_technical_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """حساب جميع المؤشرات الفنية"""
         # RSI
@@ -101,6 +133,16 @@ class StockMLModel:
         # Price Changes
         df['price_change'] = df['close'].pct_change()
         df['price_change_5d'] = df['close'].pct_change(periods=5)
+        
+        # Stochastic Oscillator
+        df['stoch_k'], df['stoch_d'] = self.calculate_stochastic(df['high'], df['low'], df['close'])
+        
+        # ADX
+        df['adx'] = self.calculate_adx(df['high'], df['low'], df['close'])
+        
+        # OBV
+        df['obv'] = self.calculate_obv(df['close'], df['volume'])
+        df['obv_ema'] = df['obv'].ewm(span=20, adjust=False).mean()
         
         return df
     

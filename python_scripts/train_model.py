@@ -7,8 +7,8 @@ import sys
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from datetime import datetime
 
 import os
@@ -77,12 +77,13 @@ def train_model(df):
     """تدريب النموذج"""
     print("\n🤖 بدء التدريب...")
     
-    # الميزات
+    # الميزات (مع المؤشرات الجديدة)
     features = [
         'rsi', 'macd', 'macd_signal', 'macd_diff',
         'sma_20', 'sma_50', 'ema_12',
         'bb_width', 'atr', 'volume_ratio',
-        'price_change', 'price_change_5d'
+        'price_change', 'price_change_5d',
+        'stoch_k', 'stoch_d', 'adx', 'obv_ema'
     ]
     
     X = df[features]
@@ -97,19 +98,36 @@ def train_model(df):
     print(f"📊 الاختبار: {len(X_test)} عينة")
     print(f"📊 توزيع الفئات:\n{y_train.value_counts()}")
     
-    # تدريب
-    model = RandomForestClassifier(
-        n_estimators=100,
-        max_depth=10,
-        min_samples_split=20,
-        min_samples_leaf=10,
+    # Hyperparameter Tuning
+    print("\n⏳ جاري Hyperparameter Tuning...")
+    
+    param_grid = {
+        'n_estimators': [100, 200],
+        'max_depth': [10, 15, 20],
+        'min_samples_split': [10, 20],
+        'min_samples_leaf': [5, 10]
+    }
+    
+    base_model = RandomForestClassifier(
         class_weight='balanced',
         random_state=42,
         n_jobs=-1
     )
     
-    print("\n⏳ جاري التدريب...")
-    model.fit(X_train, y_train)
+    grid_search = GridSearchCV(
+        base_model,
+        param_grid,
+        cv=3,
+        scoring='accuracy',
+        n_jobs=-1,
+        verbose=1
+    )
+    
+    grid_search.fit(X_train, y_train)
+    
+    print(f"\n✅ أفضل معاملات: {grid_search.best_params_}")
+    
+    model = grid_search.best_estimator_
     
     # التقييم
     y_pred = model.predict(X_test)
