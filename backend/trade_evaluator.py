@@ -40,7 +40,7 @@ class TradeEvaluator:
         ORDER BY r.createdAt DESC
         """
         
-        open_trades = self.db.execute_query(query)
+        open_trades = self.db.fetch_all(query)
         
         results = {
             'total': 0,
@@ -92,7 +92,7 @@ class TradeEvaluator:
         AND date <= CURDATE()
         """
         
-        high_low = self.db.execute_query(high_low_query, (symbol, entry_date))
+        high_low = self.db.fetch_all(high_low_query, (symbol, entry_date))
         
         if high_low and len(high_low) > 0:
             highest = float(high_low[0]['highest']) if high_low[0]['highest'] else current_price
@@ -207,7 +207,7 @@ class TradeEvaluator:
         WHERE DATE(exit_date) = %s
         """
         
-        result = self.db.execute_query(query, (date,))
+        result = self.db.fetch_all(query, (date,))
         
         if result and len(result) > 0:
             stats = result[0]
@@ -255,7 +255,7 @@ class TradeEvaluator:
         LIMIT %s
         """
         
-        trades = self.db.execute_query(query, (limit,))
+        trades = self.db.fetch_all(query, (limit,))
         
         return [
             {
