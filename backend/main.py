@@ -314,6 +314,11 @@ async def get_daily_stats(date: Optional[str] = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/stats")
+async def get_stats():
+    """جلب إحصائيات الأداء الإجمالية (alias لـ /api/trades/performance)"""
+    return await get_overall_performance()
+
 @app.get("/api/trades/performance")
 async def get_overall_performance():
     """جلب الأداء الإجمالي"""
@@ -334,7 +339,7 @@ async def get_overall_performance():
         FROM trade_performance
         """
         
-        result = db.execute_query(query)
+        result = db.fetch_all(query)
         
         if result and len(result) > 0:
             stats = result[0]
