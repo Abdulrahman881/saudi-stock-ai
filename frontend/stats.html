@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإحصائيات - مستشار الأسهم السعودية</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>📈 مستشار الأسهم السعودية</h1>
+                <p>توصيات ذكية بالذكاء الاصطناعي</p>
+            </div>
+            <nav class="nav">
+                <a href="index.html">التوصيات</a>
+                <a href="stats.html" class="active">الإحصائيات</a>
+                <a href="history.html">السجل</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="recommendations-section">
+                <h2>📊 إحصائيات الأداء</h2>
+                
+                <div class="stats-grid" style="margin-top: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <h3 id="totalTrades">-</h3>
+                            <p>إجمالي الصفقات</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="successfulTrades" style="color: var(--success);">-</h3>
+                            <p>صفقات ناجحة</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">❌</div>
+                        <div class="stat-content">
+                            <h3 id="failedTrades" style="color: var(--danger);">-</h3>
+                            <p>صفقات فاشلة</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <h3 id="successRate">-</h3>
+                            <p>نسبة النجاح</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <h3 id="totalProfit">-</h3>
+                            <p>إجمالي الربح/الخسارة</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3 id="avgProfit">-</h3>
+                            <p>متوسط الربح</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="statsContent" class="loading" style="margin-top: 2rem;">
+                    جاري التحميل...
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 مستشار الأسهم السعودية | مدعوم بالذكاء الاصطناعي</p>
+            <p class="disclaimer">⚠️ التوصيات للأغراض التعليمية فقط - استشر مستشارك المالي</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://13.53.169.204:8000/api';
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats`);
+                
+                if (!response.ok) {
+                    throw new Error('فشل في جلب البيانات');
+                }
+                
+                const data = await response.json();
+                
+                document.getElementById('totalTrades').textContent = data.total_trades || 0;
+                document.getElementById('successfulTrades').textContent = data.successful_trades || 0;
+                document.getElementById('failedTrades').textContent = data.failed_trades || 0;
+                document.getElementById('successRate').textContent = (data.success_rate || 0).toFixed(1) + '%';
+                document.getElementById('totalProfit').textContent = (data.total_profit_loss || 0).toFixed(2) + ' ريال';
+                document.getElementById('avgProfit').textContent = (data.avg_profit || 0).toFixed(2) + ' ريال';
+                
+                document.getElementById('statsContent').innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                        <p>✅ تم تحميل الإحصائيات بنجاح</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('statsContent').innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--danger);">
+                        ❌ خطأ في الاتصال بالسيرفر<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+</html>

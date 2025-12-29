@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستشار الأسهم السعودية - AI Trading Advisor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>📈 مستشار الأسهم السعودية</h1>
+                <p>توصيات ذكية بالذكاء الاصطناعي</p>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="active">التوصيات</a>
+                <a href="stats.html">الإحصائيات</a>
+                <a href="history.html">السجل</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3 id="totalRecommendations">-</h3>
+                        <p>إجمالي التوصيات</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <h3 id="buyCount">-</h3>
+                        <p>توصيات شراء</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📉</div>
+                    <div class="stat-content">
+                        <h3 id="sellCount">-</h3>
+                        <p>توصيات بيع</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <h3 id="avgConfidence">-</h3>
+                        <p>متوسط الثقة</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">الكل</button>
+                <button class="filter-btn" data-filter="buy">شراء</button>
+                <button class="filter-btn" data-filter="sell">بيع</button>
+            </div>
+
+            <!-- Recommendations List -->
+            <div class="recommendations-section">
+                <h2>📋 التوصيات اليومية</h2>
+                <div id="recommendationsList" class="recommendations-list">
+                    <div class="loading">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 مستشار الأسهم السعودية | مدعوم بالذكاء الاصطناعي</p>
+            <p class="disclaimer">⚠️ التوصيات للأغراض التعليمية فقط - استشر مستشارك المالي</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

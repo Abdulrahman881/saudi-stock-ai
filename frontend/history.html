@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>السجل - مستشار الأسهم السعودية</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table th {
+            background: var(--light-gray);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .history-table tr:hover {
+            background: var(--light-gray);
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-target {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .status-stop {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .status-neutral {
+            background: var(--gray);
+            color: var(--white);
+        }
+
+        .profit-positive {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .profit-negative {
+            color: var(--danger);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>📈 مستشار الأسهم السعودية</h1>
+                <p>توصيات ذكية بالذكاء الاصطناعي</p>
+            </div>
+            <nav class="nav">
+                <a href="index.html">التوصيات</a>
+                <a href="stats.html">الإحصائيات</a>
+                <a href="history.html" class="active">السجل</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="recommendations-section">
+                <h2>📜 سجل الصفقات</h2>
+                
+                <div id="historyContent" class="loading">
+                    جاري التحميل...
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 مستشار الأسهم السعودية | مدعوم بالذكاء الاصطناعي</p>
+            <p class="disclaimer">⚠️ التوصيات للأغراض التعليمية فقط - استشر مستشارك المالي</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://13.53.169.204:8000/api';
+
+        async function loadHistory() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/trades/history`);
+                
+                if (!response.ok) {
+                    throw new Error('فشل في جلب البيانات');
+                }
+                
+                const data = await response.json();
+                const trades = data.trades || [];
+                
+                if (trades.length === 0) {
+                    document.getElementById('historyContent').innerHTML = `
+                        <div style="text-align: center; padding: 3rem; color: var(--gray);">
+                            لا يوجد سجل صفقات حتى الآن
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const tableHTML = `
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>السهم</th>
+                                <th>النوع</th>
+                                <th>سعر الدخول</th>
+                                <th>سعر الخروج</th>
+                                <th>الحالة</th>
+                                <th>الربح/الخسارة</th>
+                                <th>النسبة</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${trades.map(trade => {
+                                const statusText = trade.status === 'target_hit' ? 'وصل للهدف' :
+                                                 trade.status === 'stop_loss_hit' ? 'وقف خسارة' : 'محايد';
+                                const statusClass = trade.status === 'target_hit' ? 'status-target' :
+                                                  trade.status === 'stop_loss_hit' ? 'status-stop' : 'status-neutral';
+                                const profitClass = trade.profit_loss >= 0 ? 'profit-positive' : 'profit-negative';
+                                const typeText = trade.recommendation_type === 'buy' ? 'شراء' : 'بيع';
+                                
+                                return `
+                                    <tr>
+                                        <td><strong>${trade.symbol}</strong></td>
+                                        <td>${typeText}</td>
+                                        <td>${trade.entry_price.toFixed(2)}</td>
+                                        <td>${trade.exit_price.toFixed(2)}</td>
+                                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                        <td class="${profitClass}">${trade.profit_loss.toFixed(2)} ريال</td>
+                                        <td class="${profitClass}">${trade.profit_loss_percent.toFixed(2)}%</td>
+                                        <td>${new Date(trade.exit_date).toLocaleDateString('ar-SA')}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('historyContent').innerHTML = tableHTML;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('historyContent').innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--danger);">
+                        ❌ خطأ في الاتصال بالسيرفر<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHistory);
+    </script>
+</body>
+</html>
