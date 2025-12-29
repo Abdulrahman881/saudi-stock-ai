@@ -239,3 +239,130 @@ async def get_sectors():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+# ==================== Trade Evaluation Endpoints ====================
+
+from backend.trade_evaluator import TradeEvaluator
+
+# Initialize Trade Evaluator
+trade_evaluator = None
+
+@app.on_event("startup")
+async def init_trade_evaluator():
+    """تهيئة نظام تقييم الصفقات"""
+    global trade_evaluator
+    if db:
+        trade_evaluator = TradeEvaluator(db)
+        print("✅ تم تهيئة نظام تقييم الصفقات")
+
+@app.post("/api/trades/evaluate")
+async def evaluate_trades():
+    """تقييم جميع الصفقات المفتوحة"""
+    try:
+        if not trade_evaluator:
+            raise HTTPException(status_code=503, detail="Trade evaluator not initialized")
+        
+        results = trade_evaluator.evaluate_open_trades()
+        
+        return {
+            "status": "success",
+            "message": f"تم تقييم {results['total']} صفقة",
+            "results": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/trades/history")
+async def get_trades_history(limit: int = Query(100, ge=1, le=500)):
+    """جلب سجل الصفقات"""
+    try:
+        if not trade_evaluator:
+            raise HTTPException(status_code=503, detail="Trade evaluator not initialized")
+        
+        trades = trade_evaluator.get_all_trades_history(limit)
+        
+        return {
+            "count": len(trades),
+            "trades": trades
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/trades/stats")
+async def get_daily_stats(date: Optional[str] = None):
+    """جلب إحصائيات الأداء اليومية"""
+    try:
+        if not trade_evaluator:
+            raise HTTPException(status_code=503, detail="Trade evaluator not initialized")
+        
+        from datetime import datetime as dt
+        
+        if date:
+            try:
+                date_obj = dt.strptime(date, "%Y-%m-%d").date()
+            except:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        else:
+            date_obj = None
+        
+        stats = trade_evaluator.get_daily_stats(date_obj)
+        
+        return stats
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/trades/performance")
+async def get_overall_performance():
+    """جلب الأداء الإجمالي"""
+    try:
+        if not db:
+            raise HTTPException(status_code=503, detail="Database not connected")
+        
+        query = """
+        SELECT 
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'target_hit' THEN 1 ELSE 0 END) as successful,
+            SUM(CASE WHEN status = 'stop_loss_hit' THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN status = 'closed_neutral' THEN 1 ELSE 0 END) as neutral,
+            AVG(profit_loss_percent) as avg_return,
+            SUM(profit_loss) as total_profit_loss,
+            MAX(profit_loss_percent) as best_trade,
+            MIN(profit_loss_percent) as worst_trade
+        FROM trade_performance
+        """
+        
+        result = db.execute_query(query)
+        
+        if result and len(result) > 0:
+            stats = result[0]
+            total = int(stats['total_trades']) if stats['total_trades'] else 0
+            successful = int(stats['successful']) if stats['successful'] else 0
+            
+            return {
+                "total_trades": total,
+                "successful_trades": successful,
+                "failed_trades": int(stats['failed']) if stats['failed'] else 0,
+                "neutral_trades": int(stats['neutral']) if stats['neutral'] else 0,
+                "success_rate": round((successful / total) * 100, 2) if total > 0 else 0.0,
+                "avg_return": float(stats['avg_return']) if stats['avg_return'] else 0.0,
+                "total_profit_loss": float(stats['total_profit_loss']) if stats['total_profit_loss'] else 0.0,
+                "best_trade": float(stats['best_trade']) if stats['best_trade'] else 0.0,
+                "worst_trade": float(stats['worst_trade']) if stats['worst_trade'] else 0.0
+            }
+        
+        return {
+            "total_trades": 0,
+            "successful_trades": 0,
+            "failed_trades": 0,
+            "neutral_trades": 0,
+            "success_rate": 0.0,
+            "avg_return": 0.0,
+            "total_profit_loss": 0.0,
+            "best_trade": 0.0,
+            "worst_trade": 0.0
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
