@@ -11,7 +11,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 from datetime import datetime
 
-sys.path.append('/home/ubuntu/projects/saudi-stock-ai')
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 from backend.data.database import Database
 from backend.models.ml_model import StockMLModel

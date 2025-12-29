@@ -9,10 +9,17 @@ from datetime import datetime, timedelta
 import time
 
 # إضافة المسار
-sys.path.append('/home/ubuntu/projects/saudi-stock-ai')
+import os
+import sys
+
+# إضافة المسار الحالي
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+sys.path.insert(0, current_dir)
 
 from backend.data.database import Database
-from python_scripts.saudi_stocks_list import SAUDI_STOCKS
+from saudi_stocks_list import SAUDI_STOCKS
 
 def fetch_stock_data(symbol, db):
     """جلب بيانات سهم واحد"""
