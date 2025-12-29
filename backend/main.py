@@ -236,11 +236,6 @@ async def get_sectors():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
 # ==================== Trade Evaluation Endpoints ====================
 
 from backend.trade_evaluator import TradeEvaluator
@@ -371,3 +366,7 @@ async def get_overall_performance():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
