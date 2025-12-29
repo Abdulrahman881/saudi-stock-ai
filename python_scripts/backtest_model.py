@@ -79,19 +79,20 @@ class Backtester:
                     prediction = self.ml_model.model.predict(X)[0]
                     confidence = self.ml_model.model.predict_proba(X)[0].max() * 100
                     
-                    # تجاهل Hold أو ثقة منخفضة
-                    if prediction == 'hold' or confidence < 40:
+                    # تجاهل Hold أو ثقة منخفضة (رفع العتبة إلى 55%)
+                    if prediction == 'hold' or confidence < 55:
                         continue
                     
                     # نقاط الدخول والخروج
                     entry_price = current_row['close']
                     
+                    # تحسين نقاط الدخول/الخروج (4% هدف, 2% وقف)
                     if prediction == 'buy':
-                        target_price = entry_price * 1.05
-                        stop_loss = entry_price * 0.97
+                        target_price = entry_price * 1.04
+                        stop_loss = entry_price * 0.98
                     else:  # sell
-                        target_price = entry_price * 0.95
-                        stop_loss = entry_price * 1.03
+                        target_price = entry_price * 0.96
+                        stop_loss = entry_price * 1.02
                     
                     # محاكاة الصفقة (5 أيام)
                     future_data = df.iloc[i+1:i+6]

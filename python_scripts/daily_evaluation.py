@@ -79,7 +79,8 @@ def main():
                     # التنبؤ
                     prediction = ml_model.generate_recommendation(symbol, history)
                     
-                    if prediction and prediction['type'] in ['buy', 'sell']:
+                    # فلتر: فقط التوصيات بثقة > 55%
+                    if prediction and prediction['type'] in ['buy', 'sell'] and prediction['confidence'] >= 55:
                         # حفظ التوصية
                         db.save_recommendation(
                             symbol=symbol,

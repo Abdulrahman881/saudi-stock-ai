@@ -181,19 +181,19 @@ class StockMLModel:
             # السعر الحالي
             current_price = float(latest['close'])
             
-            # حساب نقاط الدخول والخروج
+            # حساب نقاط الدخول والخروج (مُحسّن: 4% هدف, 2% وقف)
             if prediction == 'buy':
-                entry_price = current_price * 0.98  # 2% أقل
-                target_price = current_price * 1.05  # 5% ربح
-                stop_loss = current_price * 0.97     # 3% وقف خسارة
+                entry_price = current_price * 0.99  # 1% أقل
+                target_price = current_price * 1.04  # 4% ربح
+                stop_loss = current_price * 0.98     # 2% وقف خسارة
             elif prediction == 'sell':
-                entry_price = current_price * 1.02  # 2% أعلى
-                target_price = current_price * 0.95  # 5% ربح
-                stop_loss = current_price * 1.03     # 3% وقف خسارة
+                entry_price = current_price * 1.01  # 1% أعلى
+                target_price = current_price * 0.96  # 4% ربح
+                stop_loss = current_price * 1.02     # 2% وقف خسارة
             else:  # hold
                 entry_price = current_price
                 target_price = current_price
-                stop_loss = current_price * 0.97
+                stop_loss = current_price * 0.98
             
             return {
                 'type': prediction,
