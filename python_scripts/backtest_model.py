@@ -43,12 +43,7 @@ class Backtester:
             
             try:
                 # جلب البيانات التاريخية
-                history = self.db.get_historical_prices(
-                    symbol, 
-                    start_date=start_date,
-                    end_date=end_date,
-                    limit=1000
-                )
+                history = self.db.get_historical_prices(symbol, limit=500)
                 
                 if len(history) < 100:
                     continue
