@@ -177,6 +177,13 @@ class Database:
         """
         return self.fetch_all(query, (limit,))
     
+    def save_recommendation(self, symbol: str, recommendation_type: str, 
+                           entry_price: float, target_price: float, 
+                           stop_loss: float, confidence: float, analysis: str = None):
+        """حفظ توصية جديدة (alias لـ insert_recommendation)"""
+        return self.insert_recommendation(symbol, recommendation_type, entry_price, 
+                                         target_price, stop_loss, confidence, analysis)
+    
     def delete_old_recommendations(self, days: int = 7):
         """حذف التوصيات القديمة"""
         query = """
