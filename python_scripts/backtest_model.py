@@ -50,6 +50,12 @@ class Backtester:
                 
                 # تحويل لـ DataFrame
                 df = pd.DataFrame(history)
+                
+                # تحويل Decimal إلى float
+                for col in ['open', 'high', 'low', 'close', 'volume']:
+                    if col in df.columns:
+                        df[col] = df[col].astype(float)
+                
                 df = df.sort_values('date')
                 
                 # حساب المؤشرات
