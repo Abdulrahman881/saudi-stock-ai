@@ -77,18 +77,18 @@ def main():
                         continue
                     
                     # التنبؤ
-                    prediction = ml_model.predict_stock(history)
+                    prediction = ml_model.generate_recommendation(symbol, history)
                     
-                    if prediction and prediction['recommendation'] in ['buy', 'sell']:
+                    if prediction and prediction['type'] in ['buy', 'sell']:
                         # حفظ التوصية
                         db.save_recommendation(
                             symbol=symbol,
-                            recommendation_type=prediction['recommendation'],
+                            recommendation_type=prediction['type'],
                             entry_price=prediction['entry_price'],
                             target_price=prediction['target_price'],
                             stop_loss=prediction['stop_loss'],
                             confidence=prediction['confidence'],
-                            analysis=f"ML Prediction - Confidence: {prediction['confidence']:.2f}%"
+                            analysis=prediction.get('analysis', f"ML Prediction - Confidence: {prediction['confidence']:.2f}%")
                         )
                         recommendations_count += 1
                         
