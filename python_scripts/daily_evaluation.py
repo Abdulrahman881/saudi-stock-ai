@@ -62,7 +62,7 @@ def main():
             
             # جلب الأسهم النشطة
             stocks_query = "SELECT symbol FROM stocks WHERE isActive = 1 LIMIT 30"
-            stocks = db.execute_query(stocks_query)
+            stocks = db.fetch_all(stocks_query)
             
             recommendations_count = 0
             
