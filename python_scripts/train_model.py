@@ -82,14 +82,26 @@ def train_model(df):
     """تدريب النموذج"""
     print("\n🤖 بدء التدريب...")
     
-    # الميزات (مع المؤشرات الجديدة)
+    # الميزات (مع المؤشرات الجديدة + أنماط الشموع + الدعم/المقاومة)
     features = [
+        # المؤشرات الأساسية
         'rsi', 'macd', 'macd_signal', 'macd_diff',
         'sma_20', 'sma_50', 'ema_12',
         'bb_width', 'atr', 'volume_ratio',
         'price_change', 'price_change_5d',
-        'stoch_k', 'stoch_d', 'adx', 'obv_ema'
+        'stoch_k', 'stoch_d', 'adx', 'obv_ema',
+        # أنماط الشموع اليابانية
+        'doji', 'hammer', 'shooting_star',
+        'bullish_engulfing', 'bearish_engulfing',
+        'morning_star', 'evening_star',
+        # مستويات الدعم والمقاومة
+        'dist_from_support', 'dist_from_resistance',
+        'sr_position', 'near_support', 'near_resistance'
     ]
+    
+    # التحقق من وجود الأعمدة
+    features = [f for f in features if f in df.columns]
+    print(f"📊 الميزات المتاحة: {len(features)}")
     
     X = df[features]
     y = df['target']

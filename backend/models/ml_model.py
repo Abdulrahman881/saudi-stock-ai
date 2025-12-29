@@ -107,6 +107,77 @@ class StockMLModel:
         obv = (np.sign(close.diff()) * volume).fillna(0).cumsum()
         return obv
     
+    def detect_candlestick_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """اكتشاف أنماط الشموع اليابانية"""
+        o = df['open']
+        h = df['high']
+        l = df['low']
+        c = df['close']
+        
+        # حجم الشمعة
+        body = abs(c - o)
+        upper_shadow = h - pd.concat([c, o], axis=1).max(axis=1)
+        lower_shadow = pd.concat([c, o], axis=1).min(axis=1) - l
+        
+        # Doji - شمعة التردد
+        df['doji'] = (body / (h - l + 0.001) < 0.1).astype(int)
+        
+        # Hammer - المطرقة (إشارة صعود)
+        df['hammer'] = ((lower_shadow > body * 2) & (upper_shadow < body * 0.5) & (c > o)).astype(int)
+        
+        # Shooting Star - النجمة الساقطة (إشارة هبوط)
+        df['shooting_star'] = ((upper_shadow > body * 2) & (lower_shadow < body * 0.5) & (c < o)).astype(int)
+        
+        # Bullish Engulfing - ابتلاع صعودي
+        prev_bearish = (c.shift(1) < o.shift(1))
+        curr_bullish = (c > o)
+        engulf = (o < c.shift(1)) & (c > o.shift(1))
+        df['bullish_engulfing'] = (prev_bearish & curr_bullish & engulf).astype(int)
+        
+        # Bearish Engulfing - ابتلاع هبوطي
+        prev_bullish = (c.shift(1) > o.shift(1))
+        curr_bearish = (c < o)
+        engulf_bear = (o > c.shift(1)) & (c < o.shift(1))
+        df['bearish_engulfing'] = (prev_bullish & curr_bearish & engulf_bear).astype(int)
+        
+        # Morning Star - نجمة الصباح (إشارة صعود)
+        first_bearish = (c.shift(2) < o.shift(2)) & (body.shift(2) > body.shift(2).rolling(10).mean())
+        second_small = body.shift(1) < body.shift(2) * 0.5
+        third_bullish = (c > o) & (c > (o.shift(2) + c.shift(2)) / 2)
+        df['morning_star'] = (first_bearish & second_small & third_bullish).astype(int)
+        
+        # Evening Star - نجمة المساء (إشارة هبوط)
+        first_bullish = (c.shift(2) > o.shift(2)) & (body.shift(2) > body.shift(2).rolling(10).mean())
+        third_bearish = (c < o) & (c < (o.shift(2) + c.shift(2)) / 2)
+        df['evening_star'] = (first_bullish & second_small & third_bearish).astype(int)
+        
+        return df
+    
+    def calculate_support_resistance(self, df: pd.DataFrame, window: int = 20) -> pd.DataFrame:
+        """حساب مستويات الدعم والمقاومة"""
+        # مستوى الدعم = أدنى سعر في الفترة
+        df['support'] = df['low'].rolling(window=window).min()
+        
+        # مستوى المقاومة = أعلى سعر في الفترة
+        df['resistance'] = df['high'].rolling(window=window).max()
+        
+        # المسافة من الدعم (%)
+        df['dist_from_support'] = ((df['close'] - df['support']) / df['support']) * 100
+        
+        # المسافة من المقاومة (%)
+        df['dist_from_resistance'] = ((df['resistance'] - df['close']) / df['close']) * 100
+        
+        # نسبة الموقع بين الدعم والمقاومة (0 = عند الدعم, 1 = عند المقاومة)
+        df['sr_position'] = (df['close'] - df['support']) / (df['resistance'] - df['support'] + 0.001)
+        
+        # قرب من الدعم (إشارة شراء)
+        df['near_support'] = (df['dist_from_support'] < 2).astype(int)
+        
+        # قرب من المقاومة (إشارة بيع)
+        df['near_resistance'] = (df['dist_from_resistance'] < 2).astype(int)
+        
+        return df
+    
     def calculate_technical_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """حساب جميع المؤشرات الفنية"""
         # RSI
@@ -143,6 +214,12 @@ class StockMLModel:
         # OBV
         df['obv'] = self.calculate_obv(df['close'], df['volume'])
         df['obv_ema'] = df['obv'].ewm(span=20, adjust=False).mean()
+        
+        # أنماط الشموع اليابانية
+        df = self.detect_candlestick_patterns(df)
+        
+        # مستويات الدعم والمقاومة
+        df = self.calculate_support_resistance(df)
         
         return df
     
