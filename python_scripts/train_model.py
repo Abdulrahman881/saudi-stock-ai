@@ -57,6 +57,11 @@ def prepare_training_data(db):
         stock_df = df[df['symbol'] == symbol].copy()
         stock_df = stock_df.sort_values('date')
         
+        # تحويل Decimal إلى float
+        for col in ['open', 'high', 'low', 'close', 'volume']:
+            if col in stock_df.columns:
+                stock_df[col] = stock_df[col].astype(float)
+        
         # حساب المؤشرات
         stock_df = ml_model.calculate_technical_indicators(stock_df)
         
